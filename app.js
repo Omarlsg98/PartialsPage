@@ -23,7 +23,11 @@ const parcialSchema = {
   imgType: {
     type: String,
     required: true
-  }
+  },
+  materia: String,
+  profesor: String,
+  corte: Number,
+  periodo: String
 };
 
 const Parcial = mongoose.model("parcial", parcialSchema);
@@ -50,19 +54,26 @@ app.post("/", function(req, res) {
   //Metodo para subir archivos al servidor y guardar la referencia en la base de datos
   let newParcial = req.files.newParcial;
   if (newParcial != null) {
+
     const parcial = new Parcial({
-      imgType: _.split(newParcial.mimetype, "/")[1]
+      imgType: "." + _.split(newParcial.mimetype, "/")[1],
+      materia: req.body.materia,
+      profesor: req.body.profesor,
+      corte: req.body.corte,
+      periodo: req.body.periodo
     });
-    newParcial.name = parcial._id + "." + parcial.imgType;
-    parcial.save();
+
+    newParcial.name = parcial._id + parcial.imgType;
     newParcial.mv(`./public/images/parciales/${newParcial.name}`, err => {
       if (err) return res.status(500).send({
         message: err
       });
-      res.redirect("/parciales/"+newParcial.name);
+      parcial.save();
+      res.redirect("/parciales/" + newParcial.name);
     });
   } else {
     //no ingresa ningun archivo
+    res.redirect("/");
   }
 });
 

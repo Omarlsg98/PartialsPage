@@ -1,6 +1,7 @@
 body {
   font-family: 'Poppins', sans-serif;
   text-align: center;
+  color:#3B3B3B;
 }
 h3{
   margin: 3% 0;
@@ -20,6 +21,10 @@ h3{
   margin: 1rem 20% 3rem ;
 }
 
+.upload_container{
+  margin: 1rem 0% 3rem ;
+  text-align: left;
+}
 .custom-file-input:lang(en)~.custom-file-label::after {
     content: "Buscar";
 }

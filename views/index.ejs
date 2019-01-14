@@ -6,8 +6,49 @@
 </div>
 <div class="title_container">
   <h3>Ayuda a la comunidad y sube un parcial!</h3>
-  <form action="/" method="post" enctype="multipart/form-data">
+  <p>Es realmente sencillo ayudarnos entre todos, solo tienes que llenar el siguiente formulario:</p>
+  <form class="upload_container" action="/" method="post" enctype="multipart/form-data" onsubmit="return validarParcial(this);">
     <div class="input-group mb-3">
+      <div class="container">
+        <div class="row">
+          <div class=" form-group col-sm">
+            <input type="text" class="form-control" name="profesor" placeholder="Profesor">
+          </div>
+          <div class=" form-group col-sm">
+            <input type="text" class="form-control" name="materia" placeholder="Materia">
+          </div>
+        </div>
+        <div class="row">
+          <div class="form-group row col-sm">
+            <label class="col-md-6" for="periodo">Periodo academico:</label>
+            <select id="periodo" name="periodo" class="form-control col-md-4">
+              <option value="2018-04">2018-04</option>
+              <option value="2018-03">2018-03</option>
+              <option value="2018-02" selected>2018-02</option>
+              <option value="2018-01">2018-01</option>
+              <option value="2017-02">2017-02</option>
+              <option value="2017-01">2017-01</option>
+            </select>
+          </div>
+          <div class="form-group row col-sm">
+            <label class="col" for="cortes">Corte:</label>
+            <div id="cortes" class="col">
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="corte" id="corte1" value="1">
+                <label class="form-check-label" for="corte1">1</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="corte" id="corte2" value="2">
+                <label class="form-check-label" for="corte2">2</label>
+              </div>
+              <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="corte" id="corte3" value="3">
+                <label class="form-check-label" for="corte3">3</label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="custom-file">
         <input type="file" class="custom-file-input" id="newParcialFile" name="newParcial">
         <label class="custom-file-label" for="newParcialFile" id="newParcialFileName">Elige el parcial</label>
@@ -20,16 +61,19 @@
   </form>
 </div>
 
-<div class="row">
+<div id="muestraParciales" class="row">
   <div class="col-sm">
-    <h3>Parciales disponibles:</h2>
-    <%parciales.forEach(parcial=>{%>
-    <a class="btn btn-sm btn-success btn-block" href="/parciales/<%=parcial._id+"."+parcial.imgType%>">
-      <%=parcial._id%></a>
-    <%});%>
+    <img class="parcial_img" src="/images/parciales/<%= parcialToRender%>" alt="parcial">
   </div>
   <div class="col-sm">
-    <img class="parcial_img"src="/images/parciales/<%= parcialToRender%>" alt="parcial">
+    <h3>Parciales disponibles:</h3>
+    <%parciales.forEach(parcial=>{%>
+    <a class="btn btn-sm btn-outline-success btn-block" href="/parciales/<%=parcial._id+parcial.imgType%>#muestraParciales">
+      <%=parcial._id%></a>
+    <%});%>
+    <% if(parciales.length==0){%>
+    <p>Lo sentimos, no hay parciales actualmente :c </p>
+    <% } %>
   </div>
 </div>
 
