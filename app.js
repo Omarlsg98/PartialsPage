@@ -28,35 +28,43 @@ const parcialSchema = {
 
 const Parcial = mongoose.model("parcial", parcialSchema);
 
+app.get("/", (req, res) => {
+  res.redirect("/parciales/1.jpg");
+});
 
+app.get("/parciales/:parcial", function(req, res) {
 
-app.get("/", function(req, res) {
-  res.render("index");
+  Parcial.find({}, function(err, parciales) {
+    if (err) {
+      return res.status(500).send(err);
+    } else {
+      res.render("index", {
+        parciales: parciales,
+        parcialToRender: req.params.parcial
+      });
+    }
+  });
 });
 
 app.post("/", function(req, res) {
-  //Metodo para subir archivos al servidor
+  //Metodo para subir archivos al servidor y guardar la referencia en la base de datos
   let newParcial = req.files.newParcial;
   if (newParcial != null) {
     const parcial = new Parcial({
-      imgType:_.split(newParcial.mimetype,"/")[1]
+      imgType: _.split(newParcial.mimetype, "/")[1]
     });
-    newParcial.name= parcial._id+"."+parcial.imgType;
-    console.log(newParcial.name);
+    newParcial.name = parcial._id + "." + parcial.imgType;
     parcial.save();
     newParcial.mv(`./public/images/parciales/${newParcial.name}`, err => {
       if (err) return res.status(500).send({
         message: err
       });
-      return res.status(200).send({
-        message: 'File upload'
-      });
+      res.redirect("/parciales/"+newParcial.name);
     });
-  }else{
+  } else {
     //no ingresa ningun archivo
   }
 });
-
 
 app.listen(3000, function() {
   console.log("Server started on port 3000");

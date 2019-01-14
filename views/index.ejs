@@ -1,12 +1,37 @@
 <%- include('header'); -%>
 
-<h1>Hello world</h1>
+<div class="title_container">
+  <h1>Bienvenido a Parciales!!</h1>
+  <p>En esta web podras compartir con tus amigos los parciales de cada una de tus materias, de todos los tres cortes de cada semestre y de los distintos profesores de tu universidad. </p>
+</div>
+<div class="title_container">
+  <h3>Ayuda a la comunidad y sube un parcial!</h3>
+  <form action="/" method="post" enctype="multipart/form-data">
+    <div class="input-group mb-3">
+      <div class="custom-file">
+        <input type="file" class="custom-file-input" id="newParcialFile" name="newParcial">
+        <label class="custom-file-label" for="newParcialFile" id="newParcialFileName">Elige el parcial</label>
+      </div>
+      <div class="input-group-append">
+        <button id="submitParcial" class="input-group-text" type="submit" name="submit">Subir</button>
+      </div>
+    </div>
 
-<form action="/" method="post" enctype="multipart/form-data">
-  <input type="file" name="newParcial">
-  <button type="submit" name="submit">Subir el parcial</button>
-</form>
+  </form>
+</div>
 
-<img src="images/parciales/prueba1.jpg" alt="parcial">
+<div class="row">
+  <div class="col-sm">
+    <h3>Parciales disponibles:</h2>
+    <%parciales.forEach(parcial=>{%>
+    <a class="btn btn-sm btn-success btn-block" href="/parciales/<%=parcial._id+"."+parcial.imgType%>">
+      <%=parcial._id%></a>
+    <%});%>
+  </div>
+  <div class="col-sm">
+    <img class="parcial_img"src="/images/parciales/<%= parcialToRender%>" alt="parcial">
+  </div>
+</div>
+
 
 <%- include('footer'); -%>

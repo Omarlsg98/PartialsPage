@@ -1,7 +1,39 @@
-body{
-
+body {
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
 }
-.navbar, .navbar-brand{
+h3{
+  margin: 3% 0;
+}
+
+.navbar, .navbar-brand {
   font-weight: bold;
   font-size: 1.4rem;
+  padding: 1rem;
+}
+
+.main_container {
+  margin: 2rem;
+}
+
+.title_container {
+  margin: 1rem 20% 3rem ;
+}
+
+.custom-file-input:lang(en)~.custom-file-label::after {
+    content: "Buscar";
+}
+
+.parcial_img{
+  margin-top: 10%;
+  width:40%;
+}
+
+.footer-img {
+  margin: 1%;
+  color: black;
+}
+
+.container-fluid{
+  margin: 5% 0 ;
 }
