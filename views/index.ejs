@@ -4,7 +4,7 @@
   <h1>Bienvenido a Parciales!!</h1>
   <p>En esta web podras compartir con tus amigos los parciales de cada una de tus materias, de todos los tres cortes de cada semestre y de los distintos profesores de tu universidad. </p>
 </div>
-<div class="title_container">
+<div class="title_container contrast">
   <h3>Ayuda a la comunidad y sube un parcial!</h3>
   <p>Es realmente sencillo ayudarnos entre todos, solo tienes que llenar el siguiente formulario:</p>
   <form class="upload_container" action="/" method="post" enctype="multipart/form-data" onsubmit="return validarParcial(this);">
@@ -68,8 +68,26 @@
   <div class="col-sm">
     <h3>Parciales disponibles:</h3>
     <%parciales.forEach(parcial=>{%>
-    <a class="btn btn-sm btn-outline-success btn-block" href="/parciales/<%=parcial._id+parcial.imgType%>#muestraParciales">
-      <%=parcial._id%></a>
+    <a class="btn btn-sm btn-outline-success btn-block btn-parcial" href="/parciales/<%=parcial._id+parcial.imgType%>#muestraParciales">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-8">
+            <p> <span>Materia:</span> <%=parcial.materia%> </p>
+          </div>
+          <div class="col-md-4">
+            <p><span>Periodo:</span>  <%=parcial.periodo%></p>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-8">
+            <p><span>Profesor:</span>  <%=parcial.profesor%></p>
+          </div>
+          <div class="col-md-4">
+            <p><span>Corte:</span> <%=parcial.corte%></p>
+          </div>
+        </div>
+      </div>
+    </a>
     <%});%>
     <% if(parciales.length==0){%>
     <p>Lo sentimos, no hay parciales actualmente :c </p>
