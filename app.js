@@ -47,7 +47,6 @@ AWS.config.update({
 });
 
 var s3 = new AWS.S3({
-  apiVersion: '2006-03-01',
   params: {Bucket: albumBucketName}
 });
 
@@ -83,14 +82,20 @@ app.post("/", function(req, res) {
       corte: req.body.corte,
       periodo: req.body.periodo
     });
+    const parcialName=parcial._id + parcial.imgType;
 
-    newParcial.name = parcial._id + parcial.imgType;
-    newParcial.mv(`./public/images/parciales/${newParcial.name}`, err => {
-      if (err) return res.status(500).send({
-        message: err
-      });
+    s3.upload({
+      Key: parcialName,
+      Body: newParcial,
+      ACL: 'public-read'
+    }, function(err, data) {
+      if (err) {
+        return res.status(500).send({
+         message: err.message
+       });
+      }
       parcial.save();
-      res.redirect("/parciales/" + newParcial.name);
+      res.redirect("/parciales/" + parcialName);
     });
   } else {
     //no ingresa ningun archivo
