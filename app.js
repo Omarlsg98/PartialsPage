@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const fileUpload = require('express-fileupload'); //paquete para subir las imagenes al servidor
 const _ = require('lodash');
 const AWS = require('aws-sdk');
-const pass = require(__dirname + '/passwords');
+let pass = null;
 
 //----------Server configurations
 const app = express();
@@ -20,6 +20,7 @@ app.use(fileUpload());
 //-----------Data base------
 let pass1 = process.env.MongoPass;
 if (pass1 == null || pass1 == "") {
+  pass=require(__dirname + '/passwords');
   pass1 = pass.mongo;
 }
 
