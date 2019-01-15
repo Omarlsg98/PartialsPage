@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const fileUpload = require('express-fileupload'); //paquete para subir las imagenes al servidor
 const _ = require('lodash');
 const AWS = require('aws-sdk');
+const pass = require(__dirname + '/passwords');
 
 //----------Server configurations
 const app = express();
@@ -17,9 +18,15 @@ app.use(express.static("public"));
 app.use(fileUpload());
 
 //-----------Data base------
-mongoose.connect("mongodb://localhost:27017/parcialesDB", {
+let pass1 = process.env.MongoPass;
+if (pass1 == null || pass1 == "") {
+  pass1 = pass.mongo;
+}
+
+mongoose.connect(pass1, {
   useNewUrlParser: true
 });
+
 const parcialSchema = {
   imgType: {
     type: String,
@@ -37,12 +44,13 @@ const Parcial = mongoose.model("parcial", parcialSchema);
 //-------AWS services configuration
 var bucketName = 'parciales';
 var bucketRegion = 'us-east-1';
-var identityPoolId = 'us-east-1:2502b8c4-82b6-48ec-a959-3498f7d498f9';
 
 // Inicializar el proveedor de credenciales de Amazon Cognito
 AWS.config.region = bucketRegion; // Región
-const credentials = new AWS.SharedIniFileCredentials();
-AWS.config.credentials = credentials;
+if (process.env.AWS_ACCESS_KEY_ID == null || process.env.AWS_ACCESS_KEY_ID == "") {
+  const credentials = new AWS.SharedIniFileCredentials();
+  AWS.config.credentials = credentials;
+}
 
 var bucket = new AWS.S3({
   params: {
@@ -64,13 +72,20 @@ app.get("/parciales/:parcial", function(req, res) {
     } else {
       bucket.getObject({
         Key: req.params.parcial
-      }, function(err, file) {
-        let buff = new Buffer(file.Body);
-        let base64data = buff.toString('base64');
-        res.render("index", {
-          parciales: parciales,
-          parcialToRender:"data:image/"+_.split(req.params.parcial,".")[1]+";base64,"+base64data
-        });
+      }, function(err2, file) {
+        if (!err2 && file != null) {
+          let buff = new Buffer(file.Body);
+          let base64data = buff.toString('base64');
+          res.render("index", {
+            parciales: parciales,
+            parcialToRender: "data:image/" + _.split(req.params.parcial, ".")[1] + ";base64," + base64data
+          });
+        } else {
+          return res.status(500).send({
+            error: err2,
+            file: file
+          });
+        }
       });
     }
   });
