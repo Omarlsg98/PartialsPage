@@ -1,14 +1,15 @@
 //jshint esversion:6
+//----------Imports
 const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const fileUpload = require('express-fileupload'); //paquete para subir las imagenes al servidor
 const _ = require('lodash');
+const AWS = require('aws-sdk');
 
+//----------Server configurations
 const app = express();
-
 app.set('view engine', 'ejs');
-
 app.use(bodyParser.urlencoded({
   extended: true
 }));
@@ -31,6 +32,26 @@ const parcialSchema = {
 };
 
 const Parcial = mongoose.model("parcial", parcialSchema);
+
+
+//-------AWS services configuration
+var albumBucketName = 'parciales';
+var bucketRegion = 'us-east-1';
+var IdentityPoolId = 'us-east-1:2502b8c4-82b6-48ec-a959-3498f7d498f9';
+
+AWS.config.update({
+  region: bucketRegion,
+  credentials: new AWS.CognitoIdentityCredentials({
+    IdentityPoolId: IdentityPoolId
+  })
+});
+
+var s3 = new AWS.S3({
+  apiVersion: '2006-03-01',
+  params: {Bucket: albumBucketName}
+});
+
+//-------Interacciones del servidor
 
 app.get("/", (req, res) => {
   res.redirect("/parciales/1.jpg");
@@ -77,6 +98,12 @@ app.post("/", function(req, res) {
   }
 });
 
-app.listen(3000, function() {
-  console.log("Server started on port 3000");
+
+//--------Inicializacion del servidor
+let port= process.env.PORT;
+if(port==null||port==""){
+	port=3000;
+}
+app.listen(port, function() {
+  console.log("Server started on port "+port);
 });

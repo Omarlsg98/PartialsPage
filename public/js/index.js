@@ -20,3 +20,10 @@ function validarParcial(form) {
   if (!confirmation) alert(alertMsg);
   return confirmation;
 }
+
+
+// // Inicializar el proveedor de credenciales de Amazon Cognito
+// AWS.config.region = 'us-east-1'; // Región
+// AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+//     IdentityPoolId: 'us-east-1:2502b8c4-82b6-48ec-a959-3498f7d498f9',
+// });
