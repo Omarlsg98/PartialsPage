@@ -35,19 +35,18 @@ const Parcial = mongoose.model("parcial", parcialSchema);
 
 
 //-------AWS services configuration
-var albumBucketName = 'parciales';
+var bucketName = 'parciales';
 var bucketRegion = 'us-east-1';
-var IdentityPoolId = 'us-east-1:2502b8c4-82b6-48ec-a959-3498f7d498f9';
+var identityPoolId = 'us-east-1:2502b8c4-82b6-48ec-a959-3498f7d498f9';
 
-AWS.config.update({
-  region: bucketRegion,
-  credentials: new AWS.CognitoIdentityCredentials({
-    IdentityPoolId: IdentityPoolId
-  })
+// Inicializar el proveedor de credenciales de Amazon Cognito
+AWS.config.region = bucketRegion; // Región
+AWS.config.credentials = new AWS.CognitoIdentityCredentials({
+    IdentityPoolId: identityPoolId
 });
 
 var s3 = new AWS.S3({
-  params: {Bucket: albumBucketName}
+  params: {Bucket: bucketName}
 });
 
 //-------Interacciones del servidor
@@ -86,7 +85,7 @@ app.post("/", function(req, res) {
 
     s3.upload({
       Key: parcialName,
-      Body: newParcial,
+      Body: newParcial.data,
       ACL: 'public-read'
     }, function(err, data) {
       if (err) {
