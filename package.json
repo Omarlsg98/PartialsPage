@@ -14,7 +14,7 @@
   "author": "Omar Sanchez",
   "license": "ISC",
   "engines": {
-    node: "10.14.2"
+    "node": "10.14.2"
   },
   "bugs": {
     "url": "https://github.com/Omarlsg98/PartialsPage/issues"
