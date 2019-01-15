@@ -42,17 +42,19 @@ var identityPoolId = 'us-east-1:2502b8c4-82b6-48ec-a959-3498f7d498f9';
 // Inicializar el proveedor de credenciales de Amazon Cognito
 AWS.config.region = bucketRegion; // Región
 AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-    IdentityPoolId: identityPoolId
+  IdentityPoolId: identityPoolId
 });
 
 var s3 = new AWS.S3({
-  params: {Bucket: bucketName}
+  params: {
+    Bucket: bucketName
+  }
 });
 
 //-------Interacciones del servidor
 
 app.get("/", (req, res) => {
-  res.redirect("/parciales/1.jpg");
+  res.redirect("/parciales/default.jpg");
 });
 
 app.get("/parciales/:parcial", function(req, res) {
@@ -61,9 +63,24 @@ app.get("/parciales/:parcial", function(req, res) {
     if (err) {
       return res.status(500).send(err);
     } else {
-      res.render("index", {
-        parciales: parciales,
-        parcialToRender: req.params.parcial
+      s3.getObject({Prefix: ""}, function(err2, data) {
+        if (err2) {
+          return res.status(500).send(err2);
+        }
+        // `this` references the AWS.Response instance that represents the response
+        var href = this.request.httpRequest.endpoint.href;
+        var bucketUrl = href+bucketName+"/"+req.params.parcial;
+
+        // var photos = data.Contents.map(function(photo) {
+        //   var photoKey = photo.Key;
+        //   var photoUrl = bucketUrl + encodeURIComponent(photoKey);
+        //   console.log(photoUrl);
+        // });
+
+        res.render("index", {
+          parciales: parciales,
+          parcialToRender: bucketUrl
+        });
       });
     }
   });
@@ -81,7 +98,7 @@ app.post("/", function(req, res) {
       corte: req.body.corte,
       periodo: req.body.periodo
     });
-    const parcialName=parcial._id + parcial.imgType;
+    const parcialName = parcial._id + parcial.imgType;
 
     s3.upload({
       Key: parcialName,
@@ -90,8 +107,8 @@ app.post("/", function(req, res) {
     }, function(err, data) {
       if (err) {
         return res.status(500).send({
-         message: err.message
-       });
+          message: err.message
+        });
       }
       parcial.save();
       res.redirect("/parciales/" + parcialName);
@@ -104,10 +121,10 @@ app.post("/", function(req, res) {
 
 
 //--------Inicializacion del servidor
-let port= process.env.PORT;
-if(port==null||port==""){
-	port=3000;
+let port = process.env.PORT;
+if (port == null || port == "") {
+  port = 3000;
 }
 app.listen(port, function() {
-  console.log("Server started on port "+port);
+  console.log("Server started on port " + port);
 });
