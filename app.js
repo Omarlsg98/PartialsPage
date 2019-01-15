@@ -41,15 +41,15 @@ var identityPoolId = 'us-east-1:2502b8c4-82b6-48ec-a959-3498f7d498f9';
 
 // Inicializar el proveedor de credenciales de Amazon Cognito
 AWS.config.region = bucketRegion; // Región
-AWS.config.credentials = new AWS.CognitoIdentityCredentials({
-  IdentityPoolId: identityPoolId
-});
+const credentials = new AWS.SharedIniFileCredentials();
+AWS.config.credentials = credentials;
 
-var s3 = new AWS.S3({
+var bucket = new AWS.S3({
   params: {
-    Bucket: bucketName
+    Bucket: 'parciales'
   }
 });
+
 
 //-------Interacciones del servidor
 
@@ -58,28 +58,18 @@ app.get("/", (req, res) => {
 });
 
 app.get("/parciales/:parcial", function(req, res) {
-
   Parcial.find({}, function(err, parciales) {
     if (err) {
       return res.status(500).send(err);
     } else {
-      s3.getObject({Prefix: ""}, function(err2, data) {
-        if (err2) {
-          return res.status(500).send(err2);
-        }
-        // `this` references the AWS.Response instance that represents the response
-        var href = this.request.httpRequest.endpoint.href;
-        var bucketUrl = href+bucketName+"/"+req.params.parcial;
-
-        // var photos = data.Contents.map(function(photo) {
-        //   var photoKey = photo.Key;
-        //   var photoUrl = bucketUrl + encodeURIComponent(photoKey);
-        //   console.log(photoUrl);
-        // });
-
+      bucket.getObject({
+        Key: req.params.parcial
+      }, function(err, file) {
+        let buff = new Buffer(file.Body);
+        let base64data = buff.toString('base64');
         res.render("index", {
           parciales: parciales,
-          parcialToRender: bucketUrl
+          parcialToRender:"data:image/"+_.split(req.params.parcial,".")[1]+";base64,"+base64data
         });
       });
     }
@@ -100,19 +90,21 @@ app.post("/", function(req, res) {
     });
     const parcialName = parcial._id + parcial.imgType;
 
-    s3.upload({
+    // Create params for putObject call
+    var objectParams = {
+      Bucket: bucketName,
       Key: parcialName,
-      Body: newParcial.data,
-      ACL: 'public-read'
-    }, function(err, data) {
-      if (err) {
-        return res.status(500).send({
-          message: err.message
-        });
-      }
-      parcial.save();
-      res.redirect("/parciales/" + parcialName);
-    });
+      Body: newParcial.data
+    };
+    // Create object upload promise
+    var uploadPromise = new AWS.S3({
+      apiVersion: '2006-03-01'
+    }).putObject(objectParams).promise();
+    uploadPromise.then(
+      function(data) {
+        parcial.save();
+        res.redirect("/parciales/" + parcialName);
+      });
   } else {
     //no ingresa ningun archivo
     res.redirect("/");
