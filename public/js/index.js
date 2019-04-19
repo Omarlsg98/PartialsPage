@@ -1,7 +1,8 @@
 //jshint esversion:6
-var canvas = document.getElementById('editorImagenes');
+var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 
+//Cuando se agrega una imagen al navegador!
 $("#newParcialFile").change(function() {
   const files = this.files;
 
@@ -46,6 +47,19 @@ function validarParcial(form) {
   if (!confirmation) alert(alertMsg);
   return confirmation;
 }
+//Para guardar los cambios en la imagen!
+function guardarImagen(){
+  $.post('/', {
+      img: canvas.toDataURL("image/png"),
+      materia:"Prueba",
+      profesor:"pruebando"
+  });
+  //var canvasURL = canvas.toDataURL("image/png");
+  //var img = document.getElementById("parcialReady").src = canvasURL;
+}
+
+
+
 
 //Funcion de tachado en el canvas
 $(document).ready(function() {
