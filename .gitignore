@@ -4,6 +4,8 @@ accessKeys.csv
 prueba.js
 passwords.js
 
+*.png
+
 # Logs
 logs
 *.log
