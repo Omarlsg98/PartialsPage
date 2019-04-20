@@ -7,7 +7,7 @@
 <div class="title_container contrast">
   <h3>Ayuda a la comunidad y sube un parcial!</h3>
   <p>Es realmente sencillo ayudarnos entre todos, solo tienes que llenar el siguiente formulario:</p>
-  <form class="upload_container" action="/" method="post" enctype="multipart/form-data" onsubmit="return validarParcial(this);">
+  <form id= "formParcial" class="upload_container" action="/" method="post" enctype="multipart/form-data" onsubmit="return validarParcial(this);">
     <div class="input-group mb-3">
       <div class="container">
         <div class="row">
@@ -56,7 +56,6 @@
       <div class="input-group-append">
         <button id="submitParcial" class="input-group-text" type="submit" name="submit">Subir</button>
       </div>
-      <input type="image" id="parcialReady" name="parcialReady">
     </div>
   </form>
   <div id="editorImagenes">

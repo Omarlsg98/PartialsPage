@@ -1,7 +1,7 @@
 //jshint esversion:6
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
-let factorEscala=1;
+let factorEscala = 1;
 //Cuando se agrega una imagen al navegador!
 $("#newParcialFile").change(function() {
   const files = this.files;
@@ -23,9 +23,9 @@ $("#newParcialFile").change(function() {
           canvas.width = img.width;
 
           ctx.clearRect(0, 0, canvas.width, canvas.height);
-          factorEscala =img.width/$('#editorImagenes').width();
+          factorEscala = img.width / $('#editorImagenes').width();
           canvas.height = img.height;
-          ctx.drawImage(img, 0, 0, canvas.width,canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         };
         img.src = event.target.result;
       };
@@ -51,14 +51,22 @@ function validarParcial(form) {
   return confirmation;
 }
 //Para guardar los cambios en la imagen!
-function guardarImagen(){
-  $.post('/', {
-      img: canvas.toDataURL("image/png"),
-      materia: $("#editorImagenes"),
-      profesor:"pruebando"
+function guardarImagen() {
+  var fields = $("#formParcial").serializeArray();
+  var results=[];
+  jQuery.each(fields, function(i, field) {
+    results[i]=field.value;
   });
-  //var canvasURL = canvas.toDataURL("image/png");
-  //var img = document.getElementById("parcialReady").src = canvasURL;
+  $.post('/', {
+    img: canvas.toDataURL("image/png"),
+    materia: results[1],
+    profesor: results[0],
+    periodo:results[2],
+    corte: results[3]
+  }, function(data, status, jqXHR){
+    alert("Tu parcial fue cargado con exito!");
+    location.reload(true);
+  });
 }
 
 //Funcion de tachado en el canvas
@@ -67,13 +75,13 @@ $(document).ready(function() {
 
   $("#editorImagenes").mousedown(function(event) {
     const canvasOffset = $('#canvas').offset();
-    startX =-1;
+    startX = -1;
     startY = -1;
 
     $(this).bind('mousemove', function(e) {
-      const xPos=(e.pageX- canvasOffset.left)*factorEscala;
-      const yPos=(e.pageY- canvasOffset.top)*factorEscala;
-      if(startX!=-1)
+      const xPos = (e.pageX - canvasOffset.left) * factorEscala;
+      const yPos = (e.pageY - canvasOffset.top) * factorEscala;
+      if (startX != -1)
         drawLine(startX, startY, xPos, yPos);
       startX = xPos;
       startY = yPos;
