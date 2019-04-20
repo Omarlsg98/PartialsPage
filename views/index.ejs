@@ -7,7 +7,7 @@
 <div class="title_container contrast">
   <h3>Ayuda a la comunidad y sube un parcial!</h3>
   <p>Es realmente sencillo ayudarnos entre todos, solo tienes que llenar el siguiente formulario:</p>
-  <form id= "formParcial" class="upload_container" action="/" method="post" enctype="multipart/form-data" onsubmit="return validarParcial(this);">
+  <form id= "formParcial" class="upload_container" action="/" method="post" enctype="multipart/form-data">
     <div class="input-group mb-3">
       <div class="container">
         <div class="row">
@@ -53,17 +53,17 @@
         <input type="file" class="custom-file-input" id="newParcialFile" name="newParcial" >
         <label class="custom-file-label" for="newParcialFile" id="newParcialFileName">Elige el parcial</label>
       </div>
-      <div class="input-group-append">
-        <button id="submitParcial" class="input-group-text" type="submit" name="submit">Subir</button>
-      </div>
     </div>
   </form>
   <div id="editorImagenes">
     <canvas id="canvas" >
         Your browser doesn't support canvas
     </canvas>
-    <button class="btn" type="button" onclick="guardarImagen()" name="button">Guardar imagen</button>
+    <button class="btn" type="button" onclick="" name="button">Deshacer los cambios</button>
+    <button class="btn" type="button" onclick="guardarImagen()" name="button">Guardar cambios</button>
   </div>
+  <button id="EnviarParcial" class="btn" type="button" onclick="enviarParcial()" name="button">Enviar todo</button>
+
 </div>
 
 <div id="muestraParciales" class="row">
@@ -73,7 +73,7 @@
   <div class="col-sm">
     <h3>Parciales disponibles:</h3>
     <%parciales.forEach(parcial=>{%>
-    <a class="btn btn-sm btn-outline-success btn-block btn-parcial" href="/parciales/<%=parcial._id+parcial.imgType%>#muestraParciales">
+    <a class="btn btn-sm btn-outline-success btn-block btn-parcial" href="/parciales/<%=parcial._id%>#muestraParciales">
       <div class="container">
         <div class="row">
           <div class="col-md-8">

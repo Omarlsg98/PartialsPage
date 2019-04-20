@@ -36,14 +36,14 @@ mongoose.connect(pass1, {
 });
 
 const parcialSchema = {
-  imgType: {
-    type: String,
-    required: true
-  },
   materia: String,
   profesor: String,
   corte: Number,
-  periodo: String
+  periodo: String,
+  numeroFotos: {
+    type: Number,
+    required: true
+  }
 };
 
 const Parcial = mongoose.model("parcial", parcialSchema);
@@ -60,17 +60,11 @@ if (process.env.AWS_ACCESS_KEY_ID == null || process.env.AWS_ACCESS_KEY_ID == ""
   AWS.config.credentials = credentials;
 }
 
-var bucket = new AWS.S3({
-  params: {
-    Bucket: 'parciales'
-  }
-});
-
 
 //-------Interacciones del servidor
 
 app.get("/", (req, res) => {
-  res.redirect("/parciales/default.jpg");
+  res.redirect("/parciales/default");
 });
 
 app.get("/parciales/:parcial", function(req, res) {
@@ -78,15 +72,20 @@ app.get("/parciales/:parcial", function(req, res) {
     if (err) {
       return res.status(500).send(err);
     } else {
+      var bucket = new AWS.S3({
+        params: {
+          Bucket: 'parciales/'+req.params.parcial
+        }
+      });
       bucket.getObject({
-        Key: req.params.parcial
+        Key: '0.png'
       }, function(err2, file) {
         if (!err2 && file != null) {
           let buff = new Buffer(file.Body);
           let base64data = buff.toString('base64');
           res.render("index", {
             parciales: parciales,
-            parcialToRender: "data:image/" + _.split(req.params.parcial, ".")[1] + ";base64," + base64data
+            parcialToRender: "data:image/png;base64," + base64data
           });
         } else {
           return res.status(500).send({
@@ -101,20 +100,24 @@ app.get("/parciales/:parcial", function(req, res) {
 
 app.post("/", function(req, res) {
   //Metodo para subir archivos al servidor y guardar la referencia en la base de datos
-  let newParcial = req.body.img;
-
+  let newParcial = JSON.parse(req.body.img);
+  console.log(newParcial.length);
   if (newParcial != null) {
 
     const parcial = new Parcial({
-      imgType: ".png",
       materia: req.body.materia,
       profesor: req.body.profesor,
       corte: req.body.corte,
-      periodo: req.body.periodo
+      periodo: req.body.periodo,
+      numeroFotos:newParcial.length
     });
 
-    const parcialName = parcial._id + parcial.imgType;
-    let file =dataURLtoFile(res,parcial,newParcial, parcialName);
+    const parcialName = parcial._id;
+    parcial.save();
+    newParcial.forEach(function(imagen, indice, array) {
+        dataURLtoFile(imagen, parcialName,indice);
+    });
+    res.redirect("/parciales/" + parcialName);
 
   } else {
     //no ingresa ningun archivo
@@ -122,11 +125,11 @@ app.post("/", function(req, res) {
   }
 });
 
-function loadToS3(res,parcial,parcialName,data){
-    // Create params for putObject call
+function loadToS3(parcialName, data, number) {
+  // Create params for putObject call
   var objectParams = {
-    Bucket: bucketName,
-    Key: parcialName,
+    Bucket: bucketName + "/" + parcialName,
+    Key: number + ".png",
     Body: data
   };
   // Create object upload promise
@@ -135,13 +138,12 @@ function loadToS3(res,parcial,parcialName,data){
   }).putObject(objectParams).promise();
   uploadPromise.then(
     function(data) {
-      parcial.save();
-      res.redirect("/parciales/" + parcialName);
+
     });
 }
 
 //Convertir URLImages en files
-function dataURLtoFile(res,parcial,dataurl, filename) {
+function dataURLtoFile(dataurl, filename, number) {
   var arr = dataurl.split(','),
     mime = arr[0].match(/:(.*?);/)[1],
     bstr = atob(arr[1]),
@@ -150,10 +152,10 @@ function dataURLtoFile(res,parcial,dataurl, filename) {
   while (n--) {
     u8arr[n] = bstr.charCodeAt(n);
   }
-  fs.writeFile(filename, u8arr, function(err) {
+  fs.writeFile(filename+".png", u8arr, function(err) {
     if (err) throw err;
-    fs.readFile(filename, function(err, data) {
-      loadToS3(res,parcial,filename,data);
+    fs.readFile(filename+".png", function(err, data) {
+      loadToS3(filename, data, number);
     });
   });
 }

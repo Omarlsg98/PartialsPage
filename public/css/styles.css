@@ -68,9 +68,14 @@ h3 {
 
 #editorImagenes {
  cursor: crosshair;
- position: absolute;
+ display: none;
 }
 
 #canvas{
   width: 100%;
+}
+
+#EnviarParcial{
+   display: none;
+   margin: 0.5rem auto;
 }

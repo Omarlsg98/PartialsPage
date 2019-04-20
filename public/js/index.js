@@ -2,6 +2,9 @@
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 let factorEscala = 1;
+let images = [];
+let cambiosguardados = false;
+
 //Cuando se agrega una imagen al navegador!
 $("#newParcialFile").change(function() {
   const files = this.files;
@@ -9,19 +12,22 @@ $("#newParcialFile").change(function() {
   let textToPut = "";
   if (files.length == 0) {
     textToPut = "Elige el parcial";
-    $("#editorImagenes").css("position", "absolute");
+    $("#editorImagenes").css("display", "none");
   } else {
     var file = files[0];
     if (file.type.match('image.*')) {
-      textToPut = file.name;
+      textToPut = file.name + " -------> clickeame si deseas cambiarla imagen!";
       //cargar imagen a canvas
       var reader = new FileReader();
       reader.onload = function(event) {
         var img = new Image();
         img.onload = function() {
-          $("#editorImagenes").css("position", "relative");
-          canvas.width = img.width;
 
+          $("#editorImagenes").css("display", "block");
+          $("#EnviarParcial").css("display", "block");
+          cambiosguardados = false;
+
+          canvas.width = img.width;
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           factorEscala = img.width / $('#editorImagenes').width();
           canvas.height = img.height;
@@ -50,24 +56,37 @@ function validarParcial(form) {
   if (!confirmation) alert(alertMsg);
   return confirmation;
 }
-//Para guardar los cambios en la imagen!
-function guardarImagen() {
+//Para enviar todo el parciales
+function enviarParcial() {
+  if (!cambiosguardados)
+    guardarImagen();
   var fields = $("#formParcial").serializeArray();
-  var results=[];
+  var results = [];
   jQuery.each(fields, function(i, field) {
-    results[i]=field.value;
+    results[i] = field.value;
   });
+  console.log(images);
   $.post('/', {
-    img: canvas.toDataURL("image/png"),
+    img: JSON.stringify(images),
     materia: results[1],
     profesor: results[0],
-    periodo:results[2],
+    periodo: results[2],
     corte: results[3]
-  }, function(data, status, jqXHR){
-    alert("Tu parcial fue cargado con exito!");
+  }, function(data, status, jqXHR) {
+    alert("Tu parcial fue cargado con Exito!");
     location.reload(true);
   });
 }
+
+//Para guardar los cambios en la imagen!
+function guardarImagen() {
+  images.push(canvas.toDataURL("image/png"));
+  cambiosguardados = true;
+  $("#editorImagenes").css("display", "none");
+  $("#EnviarParcial").css("display", "block");
+  $("#newParcialFileName").text("Deseas añadir otra imagen del parcial?");
+}
+
 
 //Funcion de tachado en el canvas
 $(document).ready(function() {
