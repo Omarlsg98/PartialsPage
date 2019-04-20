@@ -70,3 +70,7 @@ h3 {
  cursor: crosshair;
  position: absolute;
 }
+
+#canvas{
+  width: 100%;
+}

@@ -1,7 +1,7 @@
 //jshint esversion:6
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
-
+let factorEscala=1;
 //Cuando se agrega una imagen al navegador!
 $("#newParcialFile").change(function() {
   const files = this.files;
@@ -21,8 +21,11 @@ $("#newParcialFile").change(function() {
         img.onload = function() {
           $("#editorImagenes").css("position", "relative");
           canvas.width = img.width;
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          factorEscala =img.width/$('#editorImagenes').width();
           canvas.height = img.height;
-          ctx.drawImage(img, 0, 0);
+          ctx.drawImage(img, 0, 0, canvas.width,canvas.height);
         };
         img.src = event.target.result;
       };
@@ -51,28 +54,27 @@ function validarParcial(form) {
 function guardarImagen(){
   $.post('/', {
       img: canvas.toDataURL("image/png"),
-      materia:"Prueba",
+      materia: $("#editorImagenes"),
       profesor:"pruebando"
   });
   //var canvasURL = canvas.toDataURL("image/png");
   //var img = document.getElementById("parcialReady").src = canvasURL;
 }
 
-
-
-
 //Funcion de tachado en el canvas
 $(document).ready(function() {
   var startX, startY;
 
   $("#editorImagenes").mousedown(function(event) {
-    startX =event.pageX- $("#editorImagenes").position().left;
-    startY = event.pageY-$("#editorImagenes").position().top;
+    const canvasOffset = $('#canvas').offset();
+    startX =-1;
+    startY = -1;
 
     $(this).bind('mousemove', function(e) {
-      const xPos=e.pageX- $("#editorImagenes").position().left;
-      const yPos=e.pageY- $("#editorImagenes").position().top;
-      drawLine(startX, startY, xPos, yPos);
+      const xPos=(e.pageX- canvasOffset.left)*factorEscala;
+      const yPos=(e.pageY- canvasOffset.top)*factorEscala;
+      if(startX!=-1)
+        drawLine(startX, startY, xPos, yPos);
       startX = xPos;
       startY = yPos;
     });
