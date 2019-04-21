@@ -4,15 +4,22 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const fileUpload = require('express-fileupload'); //paquete para subir las imagenes al servidor
+const atob = require('atob');
 const _ = require('lodash');
 const AWS = require('aws-sdk');
+const fs = require('fs');
 let pass = null;
 
 //----------Server configurations
 const app = express();
 app.set('view engine', 'ejs');
+app.use(bodyParser.json({
+  limit: '16mb'
+}));
+
 app.use(bodyParser.urlencoded({
-  extended: true
+  extended: false,
+  limit: '16mb'
 }));
 app.use(express.static("public"));
 app.use(fileUpload());
@@ -20,7 +27,7 @@ app.use(fileUpload());
 //-----------Data base------
 let pass1 = process.env.MongoPass;
 if (pass1 == null || pass1 == "") {
-  pass=require(__dirname + '/passwords');
+  pass = require(__dirname + '/passwords');
   pass1 = pass.mongo;
 }
 
@@ -29,14 +36,14 @@ mongoose.connect(pass1, {
 });
 
 const parcialSchema = {
-  imgType: {
-    type: String,
-    required: true
-  },
   materia: String,
   profesor: String,
   corte: Number,
-  periodo: String
+  periodo: String,
+  numeroFotos: {
+    type: Number,
+    required: true
+  }
 };
 
 const Parcial = mongoose.model("parcial", parcialSchema);
@@ -53,33 +60,47 @@ if (process.env.AWS_ACCESS_KEY_ID == null || process.env.AWS_ACCESS_KEY_ID == ""
   AWS.config.credentials = credentials;
 }
 
-var bucket = new AWS.S3({
-  params: {
-    Bucket: 'parciales'
-  }
-});
-
 
 //-------Interacciones del servidor
 
 app.get("/", (req, res) => {
-  res.redirect("/parciales/default.jpg");
+  res.redirect("/parciales/default");
+});
+app.get("/parciales/:parcial", (req,res)=>{
+  res.redirect("/parciales/"+req.params.parcial+"/0");
 });
 
-app.get("/parciales/:parcial", function(req, res) {
+app.get("/parciales/:parcial/:number", function(req, res) {
   Parcial.find({}, function(err, parciales) {
     if (err) {
       return res.status(500).send(err);
     } else {
+      var bucket = new AWS.S3({
+        params: {
+          Bucket: 'parciales/'+req.params.parcial
+        }
+      });
+      let numberImages=1;
+      parciales.forEach((valor)=>{
+        if (valor._id==req.params.parcial){
+          numberImages=valor.numeroFotos;
+        }
+      });
+      let numberLeft= (req.params.number-1) >=0?req.params.number-1:numberImages-1;
+      let numberRight= (req.params.number+1)<numberImages?Number(req.params.number)+1:0;
+      //numberLeft= "parciales/"+req.params.parcial+"/"+numberLeft;
+      //numberRight= "parciales/"+req.params.parcial+"/"+numberRight;
       bucket.getObject({
-        Key: req.params.parcial
+        Key: req.params.number+'.png'
       }, function(err2, file) {
         if (!err2 && file != null) {
           let buff = new Buffer(file.Body);
           let base64data = buff.toString('base64');
           res.render("index", {
             parciales: parciales,
-            parcialToRender: "data:image/" + _.split(req.params.parcial, ".")[1] + ";base64," + base64data
+            parcialToRender: "data:image/png;base64," + base64data,
+            numberLeft:numberLeft,
+            numberRight:numberRight
           });
         } else {
           return res.status(500).send({
@@ -94,38 +115,66 @@ app.get("/parciales/:parcial", function(req, res) {
 
 app.post("/", function(req, res) {
   //Metodo para subir archivos al servidor y guardar la referencia en la base de datos
-  let newParcial = req.files.newParcial;
+  let newParcial = JSON.parse(req.body.img);
+  console.log(newParcial.length);
   if (newParcial != null) {
 
     const parcial = new Parcial({
-      imgType: "." + _.split(newParcial.mimetype, "/")[1],
       materia: req.body.materia,
       profesor: req.body.profesor,
       corte: req.body.corte,
-      periodo: req.body.periodo
+      periodo: req.body.periodo,
+      numeroFotos:newParcial.length
     });
-    const parcialName = parcial._id + parcial.imgType;
 
-    // Create params for putObject call
-    var objectParams = {
-      Bucket: bucketName,
-      Key: parcialName,
-      Body: newParcial.data
-    };
-    // Create object upload promise
-    var uploadPromise = new AWS.S3({
-      apiVersion: '2006-03-01'
-    }).putObject(objectParams).promise();
-    uploadPromise.then(
-      function(data) {
-        parcial.save();
-        res.redirect("/parciales/" + parcialName);
-      });
+    const parcialName = parcial._id;
+    parcial.save();
+    newParcial.forEach(function(imagen, indice, array) {
+        dataURLtoFile(imagen, parcialName,indice);
+    });
+    res.redirect("/");
+
   } else {
     //no ingresa ningun archivo
     res.redirect("/");
   }
 });
+
+function loadToS3(parcialName, data, number) {
+  // Create params for putObject call
+  var objectParams = {
+    Bucket: bucketName + "/" + parcialName,
+    Key: number + ".png",
+    Body: data
+  };
+  // Create object upload promise
+  var uploadPromise = new AWS.S3({
+    apiVersion: '2006-03-01'
+  }).putObject(objectParams).promise();
+  uploadPromise.then(
+    function(data) {
+
+    });
+}
+
+//Convertir URLImages en files
+function dataURLtoFile(dataurl, filename, number) {
+  var arr = dataurl.split(','),
+    mime = arr[0].match(/:(.*?);/)[1],
+    bstr = atob(arr[1]),
+    n = bstr.length,
+    u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  fs.writeFile(filename+number+".png", u8arr, function(err) {
+    if (err) throw err;
+    fs.readFile(filename+number+".png", function(err, data) {
+      loadToS3(filename, data, number);
+    });
+  });
+}
+
 
 
 //--------Inicializacion del servidor

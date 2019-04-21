@@ -1,21 +1,24 @@
 body {
   font-family: 'Poppins', sans-serif;
   text-align: center;
-  color:#3B3B3B;
+  color: #3B3B3B;
 }
-h3{
+
+h3 {
   margin: 3% 0;
 }
-.navbar{
+
+.navbar {
   padding: 0.6rem 3rem;
 }
 
 .navbar, .navbar-brand {
-  font-weight:normal;
+  font-weight: normal;
   font-size: 1.4rem;
   font-family: 'Staatliches', cursive;
 }
-.navbar-brand{
+
+.navbar-brand {
   font-size: 2.5rem;
 }
 
@@ -27,26 +30,37 @@ h3{
   margin: 7rem 20% 3rem;
 }
 
-.upload_container{
-  margin: 1rem 0 3rem ;
+.upload_container {
+  margin: 1rem 0 3rem;
   text-align: left;
-}
-.custom-file-input:lang(en)~.custom-file-label::after {
-    content: "Buscar";
 }
 
-.parcial_img{
-  margin-top: 10%;
-  width:40%;
+.custom-file-input:lang(en)~.custom-file-label::after {
+  content: "Buscar";
 }
-.btn-parcial{
-  margin:1rem 0;
+
+.parcial_img {
+  width: 100%;
+}
+
+.btn-viewer{
+  height: 100%;
+  color: green;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+}
+.btn-parcial {
+  margin: 1rem 0;
   text-align: left;
 }
-.btn-parcial p{
-  margin:0;
+
+.btn-parcial p {
+  margin: 0;
 }
-.btn-parcial span{
+
+.btn-parcial span {
   font-weight: bold;
 }
 
@@ -55,6 +69,20 @@ h3{
   color: black;
 }
 
-.container-fluid{
-  margin: 5% 0 ;
+.container-fluid {
+  margin: 5% 0;
+}
+
+#editorImagenes {
+ cursor: crosshair;
+ display: none;
+}
+
+#canvas{
+  width: 100%;
+}
+
+#EnviarParcial{
+   display: none;
+   margin: 0.5rem auto;
 }
