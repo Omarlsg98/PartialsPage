@@ -40,10 +40,17 @@ h3 {
 }
 
 .parcial_img {
-  margin-top: 10%;
-  width: 40%;
+  width: 100%;
 }
 
+.btn-viewer{
+  height: 100%;
+  color: green;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+}
 .btn-parcial {
   margin: 1rem 0;
   text-align: left;

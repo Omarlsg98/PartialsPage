@@ -66,8 +66,11 @@ if (process.env.AWS_ACCESS_KEY_ID == null || process.env.AWS_ACCESS_KEY_ID == ""
 app.get("/", (req, res) => {
   res.redirect("/parciales/default");
 });
+app.get("/parciales/:parcial", (req,res)=>{
+  res.redirect("/parciales/"+req.params.parcial+"/0");
+});
 
-app.get("/parciales/:parcial", function(req, res) {
+app.get("/parciales/:parcial/:number", function(req, res) {
   Parcial.find({}, function(err, parciales) {
     if (err) {
       return res.status(500).send(err);
@@ -77,15 +80,27 @@ app.get("/parciales/:parcial", function(req, res) {
           Bucket: 'parciales/'+req.params.parcial
         }
       });
+      let numberImages=1;
+      parciales.forEach((valor)=>{
+        if (valor._id==req.params.parcial){
+          numberImages=valor.numeroFotos;
+        }
+      });
+      let numberLeft= (req.params.number-1) >=0?req.params.number-1:numberImages-1;
+      let numberRight= (req.params.number+1)<numberImages?Number(req.params.number)+1:0;
+      //numberLeft= "parciales/"+req.params.parcial+"/"+numberLeft;
+      //numberRight= "parciales/"+req.params.parcial+"/"+numberRight;
       bucket.getObject({
-        Key: '0.png'
+        Key: req.params.number+'.png'
       }, function(err2, file) {
         if (!err2 && file != null) {
           let buff = new Buffer(file.Body);
           let base64data = buff.toString('base64');
           res.render("index", {
             parciales: parciales,
-            parcialToRender: "data:image/png;base64," + base64data
+            parcialToRender: "data:image/png;base64," + base64data,
+            numberLeft:numberLeft,
+            numberRight:numberRight
           });
         } else {
           return res.status(500).send({
@@ -117,7 +132,7 @@ app.post("/", function(req, res) {
     newParcial.forEach(function(imagen, indice, array) {
         dataURLtoFile(imagen, parcialName,indice);
     });
-    res.redirect("/parciales/" + parcialName);
+    res.redirect("/");
 
   } else {
     //no ingresa ningun archivo
@@ -152,9 +167,9 @@ function dataURLtoFile(dataurl, filename, number) {
   while (n--) {
     u8arr[n] = bstr.charCodeAt(n);
   }
-  fs.writeFile(filename+".png", u8arr, function(err) {
+  fs.writeFile(filename+number+".png", u8arr, function(err) {
     if (err) throw err;
-    fs.readFile(filename+".png", function(err, data) {
+    fs.readFile(filename+number+".png", function(err, data) {
       loadToS3(filename, data, number);
     });
   });
